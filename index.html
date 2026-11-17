@@ -771,15 +771,20 @@
             </div>
             <div class="grid grid-cols-2 gap-4 mb-3">
               <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 1 (Winner: ${winner === 'Team 1' ? 'Yes' : 'No'})</div>
+                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 1 ${winner === 'Team 1' ? '<span class="text-green-600 font-bold">✓ Winner</span>' : ''}</div>
                 <div class="font-medium text-gray-900">${m.team1.map(p => `${p.name} (${p.level})`).join(', ')}</div>
+                <div class="text-xs text-gray-600 mt-2">Total points: <span class="font-bold">${m.games.reduce((s, g) => s + g.team1, 0)}</span></div>
+                <div class="text-xs text-gray-600">Point diff: <span class="font-bold ${m.games.reduce((s, g) => s + g.team1 - g.team2, 0) >= 0 ? 'text-green-600' : 'text-red-600'}">${m.games.reduce((s, g) => s + g.team1 - g.team2, 0) >= 0 ? '+' : ''}${m.games.reduce((s, g) => s + g.team1 - g.team2, 0)}</span></div>
               </div>
               <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 2 (Winner: ${winner === 'Team 2' ? 'Yes' : 'No'})</div>
+                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 2 ${winner === 'Team 2' ? '<span class="text-green-600 font-bold">✓ Winner</span>' : ''}</div>
                 <div class="font-medium text-gray-900">${m.team2.map(p => `${p.name} (${p.level})`).join(', ')}</div>
+                <div class="text-xs text-gray-600 mt-2">Total points: <span class="font-bold">${m.games.reduce((s, g) => s + g.team2, 0)}</span></div>
+                <div class="text-xs text-gray-600">Point diff: <span class="font-bold ${m.games.reduce((s, g) => s + g.team2 - g.team1, 0) >= 0 ? 'text-green-600' : 'text-red-600'}">${m.games.reduce((s, g) => s + g.team2 - g.team1, 0) >= 0 ? '+' : ''}${m.games.reduce((s, g) => s + g.team2 - g.team1, 0)}</span></div>
               </div>
             </div>
-            <div class="flex justify-between items-center">
+            ${team1Wins === team2Wins ? `<div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3"><div class="text-xs text-amber-800 font-semibold mb-1">💪 Strength by Score (Tiebreaker)</div><div class="text-sm text-amber-700">${m.games.reduce((s, g) => s + g.team1, 0) > m.games.reduce((s, g) => s + g.team2, 0) ? `Team 1 wins on total points (${m.games.reduce((s, g) => s + g.team1, 0)} vs ${m.games.reduce((s, g) => s + g.team2, 0)})` : m.games.reduce((s, g) => s + g.team2, 0) > m.games.reduce((s, g) => s + g.team1, 0) ? `Team 2 wins on total points (${m.games.reduce((s, g) => s + g.team2, 0)} vs ${m.games.reduce((s, g) => s + g.team1, 0)}) : 'Exactly tied on points'}</div></div>` : ''}
+            <div class="flex justify-between items-center mt-3">
               <div class="text-sm text-gray-600">
                 <span class="font-semibold">Scores:</span> ${scores}
               </div>
