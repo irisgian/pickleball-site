@@ -15,6 +15,8 @@
     .modal.open { display: block; opacity: 1; }
     .queue-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
     .match-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
+    .game-row { transition: background 0.2s; }
+    .game-row:hover { background: #f9fafb; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
@@ -107,8 +109,8 @@
           <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
             3
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Record the Score</h3>
-          <p class="text-gray-600 text-sm">Enter the final score after the game to update the leaderboard.</p>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Record Game Scores</h3>
+          <p class="text-gray-600 text-sm">Enter each game's score (to 11) to update player stats.</p>
         </div>
       </div>
     </div>
@@ -167,7 +169,7 @@
   <section id="leaderboard" class="py-12 sm:py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Player Leaderboard</h2>
-      <p class="text-center text-gray-600 mb-8">Leaderboard updates when you record match scores.</p>
+      <p class="text-center text-gray-600 mb-8">Stats update when you record game scores after each match.</p>
       <div class="overflow-x-auto">
         <table class="min-w-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200">
           <thead>
@@ -175,8 +177,8 @@
               <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm">Rank</th>
               <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm">Player</th>
               <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm">Level</th>
-              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm text-right">Wins</th>
-              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm text-right">Losses</th>
+              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm text-right">Games Won</th>
+              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm text-right">Games Lost</th>
               <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm text-right">Win %</th>
             </tr>
           </thead>
@@ -290,23 +292,22 @@
     <div class="absolute inset-0 flex items-center justify-center p-4">
       <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
         <div class="p-6 border-b border-gray-200">
-          <h3 class="text-xl font-bold text-gray-900">Record Score</h3>
+          <h3 class="text-xl font-bold text-gray-900">Record Game Scores</h3>
           <p class="text-sm text-gray-500 mt-1" id="score-modal-match-info"></p>
         </div>
         <div class="p-6 space-y-4">
           <form id="score-form" class="space-y-4">
             <input type="hidden" id="score-match-id" />
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Team 1 Score</label>
-              <input type="number" id="score-team1" min="0" max="30" required placeholder="e.g. 11" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition" />
+            <div id="score-games-container">
+              <!-- Game rows injected by JS -->
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Team 2 Score</label>
-              <input type="number" id="score-team2" min="0" max="30" required placeholder="e.g. 7" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition" />
-            </div>
-            <div class="flex gap-3">
+            <button type="button" id="add-game-btn" class="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+              Add Another Game
+            </button>
+            <div class="flex gap-3 pt-4">
               <button type="button" onclick="closeScoreModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition">Cancel</button>
-              <button type="submit" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg hover:shadow-xl">Save Score</button>
+              <button type="submit" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg hover:shadow-xl">Save All Scores</button>
             </div>
           </form>
         </div>
@@ -331,14 +332,12 @@
     // Player queue state
     let queue = [];
 
-    // Leaderboard data (starts empty, built from recorded match scores)
-    let players = [];
-
     // Matches data (starts empty, populated by matchmaking)
     let matches = [];
 
     // Score modal state
     let currentMatchId = null;
+    let gameCount = 1;
 
     // Join form
     document.getElementById('join-form').addEventListener('submit', (e) => {
@@ -373,7 +372,7 @@
         time: matchTime,
         court: `Court ${Math.floor(Math.random() * 6) + 1}`,
         status: 'Ready',
-        score: null  // No score yet - entered manually
+        games: []  // Array of { team1: score, team2: score }
       };
 
       matches.unshift(match);
@@ -416,40 +415,46 @@
     function renderLeaderboard() {
       const body = document.getElementById('leaderboard-body');
 
-      // Build leaderboard from matches that have recorded scores
+      // Build leaderboard from matches that have recorded game scores
       const stats = {};
       matches.forEach(m => {
-        if (!m.score) return; // Only count matches with recorded scores
-
-        const team1Won = m.score.team1 > m.score.team2;
+        if (!m.games || m.games.length === 0) return; // Only count matches with recorded scores
 
         // Register all players
         [...m.team1, ...m.team2].forEach(p => {
           if (!stats[p.name]) {
-            stats[p.name] = { name: p.name, level: p.level, wins: 0, losses: 0 };
+            stats[p.name] = { name: p.name, level: p.level, gamesWon: 0, gamesLost: 0, pointsFor: 0, pointsAgainst: 0 };
           }
         });
 
-        // Team 1 players
-        m.team1.forEach(p => {
-          if (team1Won) stats[p.name].wins++;
-          else stats[p.name].losses++;
-        });
+        m.games.forEach(g => {
+          const team1Won = g.team1 > g.team2;
 
-        // Team 2 players
-        m.team2.forEach(p => {
-          if (!team1Won) stats[p.name].wins++;
-          else stats[p.name].losses++;
+          // Team 1 players
+          m.team1.forEach(p => {
+            stats[p.name].gamesWon += team1Won ? 1 : 0;
+            stats[p.name].gamesLost += team1Won ? 0 : 1;
+            stats[p.name].pointsFor += g.team1;
+            stats[p.name].pointsAgainst += g.team2;
+          });
+
+          // Team 2 players
+          m.team2.forEach(p => {
+            stats[p.name].gamesWon += team1Won ? 0 : 1;
+            stats[p.name].gamesLost += team1Won ? 1 : 0;
+            stats[p.name].pointsFor += g.team2;
+            stats[p.name].pointsAgainst += g.team1;
+          });
         });
       });
 
-      const sorted = Object.values(stats).sort((a, b) => b.wins - a.wins);
+      const sorted = Object.values(stats).sort((a, b) => b.gamesWon - a.gamesWon);
 
       if (sorted.length === 0) {
         body.innerHTML = `
           <tr>
             <td colspan="6" class="px-6 py-12 text-center text-gray-400">
-              No recorded scores yet. Play a match and record the score!
+              No recorded scores yet. Play a match and record the game scores!
             </td>
           </tr>
         `;
@@ -457,14 +462,15 @@
       }
 
       body.innerHTML = sorted.map((p, i) => {
-        const winPct = p.wins + p.losses === 0 ? 0 : Math.round((p.wins / (p.wins + p.losses)) * 100);
+        const totalGames = p.gamesWon + p.gamesLost;
+        const winPct = totalGames === 0 ? 0 : Math.round((p.gamesWon / totalGames) * 100);
         return `
           <tr class="player-row">
             <td class="px-6 py-4 font-bold text-gray-600">${i + 1}</td>
             <td class="px-6 py-4 font-medium text-gray-900">${p.name}</td>
             <td class="px-6 py-4 text-gray-600"><span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border border-gray-200">${p.level}</span></td>
-            <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.wins}</td>
-            <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.losses}</td>
+            <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.gamesWon}</td>
+            <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.gamesLost}</td>
             <td class="px-6 py-4 text-gray-600 text-right">${winPct}%</td>
           </tr>
         `;
@@ -476,17 +482,67 @@
       if (!match) return;
 
       currentMatchId = matchId;
+      gameCount = match.games.length || 1;
       document.getElementById('score-modal-match-info').textContent =
         `${match.team1.map(p => p.name).join(' & ')} vs ${match.team2.map(p => p.name).join(' & ')}`;
       document.getElementById('score-match-id').value = matchId;
-      document.getElementById('score-team1').value = match.score ? match.score.team1 : '';
-      document.getElementById('score-team2').value = match.score ? match.score.team2 : '';
+      renderScoreGameRows(match);
       document.getElementById('score-modal').classList.add('open');
+    }
+
+    function renderScoreGameRows(match) {
+      const container = document.getElementById('score-games-container');
+      const existingGames = match.games || [];
+
+      container.innerHTML = '';
+
+      for (let i = 0; i < gameCount; i++) {
+        const game = existingGames[i] || { team1: '', team2: '' };
+        container.innerHTML += `
+          <div class="game-row p-4 border border-gray-200 rounded-xl bg-gray-50">
+            <div class="flex justify-between items-center mb-3">
+              <span class="font-semibold text-gray-700">Game ${i + 1}</span>
+              ${gameCount > 1 ? `<button type="button" onclick="removeGameRow(${i})" class="text-red-500 hover:text-red-700 text-sm">Remove</button>` : ''}
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs text-gray-500 uppercase tracking-wider mb-1">Team 1 (${match.team1.map(p => p.name).join(' & ')})</label>
+                <input type="number" name="game-team1" min="0" max="30" value="${game.team1 || ''}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition" />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 uppercase tracking-wider mb-1">Team 2 (${match.team2.map(p => p.name).join(' & ')})</label>
+                <input type="number" name="game-team2" min="0" max="30" value="${game.team2 || ''}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition" />
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function addGameRow() {
+      if (gameCount >= 5) {
+        showToast('Maximum 5 games per match');
+        return;
+      }
+      gameCount++;
+      const match = matches.find(m => m.id === currentMatchId);
+      renderScoreGameRows(match);
+    }
+
+    function removeGameRow(index) {
+      if (gameCount <= 1) return;
+      const match = matches.find(m => m.id === currentMatchId);
+      if (match.games) {
+        match.games.splice(index, 1);
+      }
+      gameCount--;
+      renderScoreGameRows(match);
     }
 
     function closeScoreModal() {
       document.getElementById('score-modal').classList.remove('open');
       currentMatchId = null;
+      gameCount = 1;
     }
 
     // Score form submit
@@ -495,10 +551,18 @@
       const match = matches.find(m => m.id === currentMatchId);
       if (!match) return;
 
-      match.score = {
-        team1: parseInt(document.getElementById('score-team1').value),
-        team2: parseInt(document.getElementById('score-team2').value)
-      };
+      const team1Inputs = document.querySelectorAll('input[name="game-team1"]');
+      const team2Inputs = document.querySelectorAll('input[name="game-team2"]');
+
+      const games = [];
+      for (let i = 0; i < team1Inputs.length; i++) {
+        games.push({
+          team1: parseInt(team1Inputs[i].value),
+          team2: parseInt(team2Inputs[i].value)
+        });
+      }
+
+      match.games = games;
       match.status = 'Completed';
 
       // Put players back in the waiting queue after the game
@@ -510,13 +574,16 @@
       renderQueue();
       renderMatches();
       renderLeaderboard();
-      showToast('Score recorded! Players are back in the queue.');
+      showToast('Game scores recorded! Players are back in the queue.');
     });
 
     // Close modal when clicking outside
     document.getElementById('score-modal').addEventListener('click', (e) => {
       if (e.target.id === 'score-modal') closeScoreModal();
     });
+
+    // Add game button
+    document.getElementById('add-game-btn').addEventListener('click', addGameRow);
 
     function renderMatches() {
       const grid = document.getElementById('matches-grid');
@@ -525,8 +592,8 @@
       const nextDetails = document.getElementById('next-match-details');
       const nextCourt = document.getElementById('next-match-court');
 
-      // Find next upcoming match (no score yet)
-      const nextMatch = matches.find(m => !m.score);
+      // Find next upcoming match (no games recorded yet)
+      const nextMatch = matches.find(m => !m.games || m.games.length === 0);
 
       if (matches.length === 0) {
         highlight.classList.add('hidden');
@@ -551,27 +618,40 @@
       grid.innerHTML = matches.map(m => {
         const team1Names = m.team1.map(p => p.name).join(' & ');
         const team2Names = m.team2.map(p => p.name).join(' & ');
-        const scoreDisplay = m.score
-          ? `<span class="font-mono text-xl font-bold">${m.score.team1} - ${m.score.team2}</span>`
-          : '<span class="text-gray-400">Score not recorded</span>';
+
+        let scoreDisplay = '<span class="text-gray-400">No scores</span>';
+        if (m.games && m.games.length > 0) {
+          scoreDisplay = m.games.map((g, i) => `Game ${i + 1}: ${g.team1}-${g.team2}`).join(' • ');
+        }
+
+        const team1Wins = m.games ? m.games.filter(g => g.team1 > g.team2).length : 0;
+        const team2Wins = m.games ? m.games.filter(g => g.team2 > g.team1).length : 0;
+        const matchWinner = team1Wins > team2Wins ? 'Team 1' : team2Wins > team1Wins ? 'Team 2' : 'Tie';
 
         return `
           <div class="match-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
             <div class="flex justify-between items-start mb-3">
               <h3 class="text-lg font-bold text-gray-900">${team1Names} vs ${team2Names}</h3>
-              <span class="px-3 py-1 ${m.score ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} text-xs font-medium rounded-full">
-                ${m.score ? 'Completed' : 'Ready'}
+              <span class="px-3 py-1 ${m.games && m.games.length > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} text-xs font-medium rounded-full">
+                ${m.games && m.games.length > 0 ? 'Completed' : 'Ready'}
               </span>
             </div>
             <div class="grid grid-cols-2 gap-4 mb-4">
               <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 1</div>
                 <div class="font-medium text-gray-900">${m.team1.map(p => p.name).join(', ')}</div>
+                ${m.games && m.games.length > 0 ? `<div class="text-xs text-green-600 mt-1">Games won: ${team1Wins}</div>` : ''}
               </div>
               <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 2</div>
                 <div class="font-medium text-gray-900">${m.team2.map(p => p.name).join(', ')}</div>
+                ${m.games && m.games.length > 0 ? `<div class="text-xs text-green-600 mt-1">Games won: ${team2Wins}</div>` : ''}
               </div>
+            </div>
+            <div class="mb-4">
+              <div class="text-xs text-gray-500 mb-2">Game Scores</div>
+              <div class="text-sm text-gray-700">${scoreDisplay}</div>
+              ${m.games && m.games.length > 0 ? `<div class="text-xs text-gray-500 mt-1">Match winner: ${matchWinner}</div>` : ''}
             </div>
             <div class="flex justify-between items-center mb-4">
               <div>
@@ -579,21 +659,31 @@
                 <p class="text-gray-600 text-sm"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${m.court}</p>
               </div>
               <div class="text-right">
-                <div class="text-xs text-gray-500 mb-1">Score</div>
-                <div class="font-mono text-xl font-bold text-gray-900">${m.score ? `${m.score.team1} - ${m.score.team2}` : '–'}</div>
+                <div class="text-xs text-gray-500 mb-1">Match Result</div>
+                <div class="font-mono text-lg font-bold text-gray-900">
+                  ${m.games && m.games.length > 0 ? `${team1Wins}-${team2Wins} games` : '–'}
+                </div>
               </div>
             </div>
             <div class="flex gap-2">
-              ${m.score
-                ? '<button class="flex-1 py-2 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium disabled:opacity-50" disabled>Recorded</button>'
-                : `<button onclick="openScoreModal(${m.id})" class="flex-1 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">Record Score</button>`}
-              <button class="w-10 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition" title="Delete">
+              ${m.games && m.games.length > 0
+                ? '<button class="flex-1 py-2 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium disabled:opacity-50" disabled>Scores Recorded</button>'
+                : `<button onclick="openScoreModal(${m.id})" class="flex-1 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">Record Scores</button>`}
+              <button class="w-10 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition" title="Delete match" onclick="deleteMatch(${m.id})">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
               </button>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function deleteMatch(matchId) {
+      if (!confirm('Delete this match? All recorded scores will be removed.')) return;
+      matches = matches.filter(m => m.id !== matchId);
+      renderMatches();
+      renderLeaderboard();
+      showToast('Match deleted.');
     }
 
     // Contact form
