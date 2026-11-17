@@ -10,7 +10,7 @@
     body { font-family: 'Inter', sans-serif; }
     .nav-link { transition: color 0.2s; }
     .nav-link:hover, .nav-link:focus { color: #2563eb; }
-    .court-card:hover { transform: translateY(-4px); transition: transform 0.2s; }
+    .schedule-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
     .player-row:nth-child(even) { background: #f9fafb; }
     .modal { display: none; opacity: 0; transition: opacity 0.3s; }
     .modal.open { display: block; opacity: 1; }
@@ -30,7 +30,7 @@
         </div>
         <div class="hidden md:flex space-x-8">
           <a href="#home" class="nav-link text-gray-600 hover:text-green-600 font-medium">Home</a>
-          <a href="#courts" class="nav-link text-gray-600 hover:text-green-600 font-medium">Where We Play</a>
+          <a href="#schedule" class="nav-link text-gray-600 hover:text-green-600 font-medium">Schedule</a>
           <a href="#leaderboard" class="nav-link text-gray-600 hover:text-green-600 font-medium">Leaderboard</a>
           <a href="#matches" class="nav-link text-gray-600 hover:text-green-600 font-medium">Matches</a>
           <a href="#contact" class="nav-link text-gray-600 hover:text-green-600 font-medium">Contact</a>
@@ -47,7 +47,7 @@
     <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
       <div class="px-4 py-4 space-y-4">
         <a href="#home" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Home</a>
-        <a href="#courts" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Where We Play</a>
+        <a href="#schedule" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Schedule</a>
         <a href="#leaderboard" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Leaderboard</a>
         <a href="#matches" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Matches</a>
         <a href="#contact" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Contact</a>
@@ -59,15 +59,19 @@
   <section id="home" class="relative overflow-hidden">
     <div class="absolute inset-0 bg-green-500/15 -z-10"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-32 text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-semibold mb-6">
+        <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+        Open Play Every Day
+      </div>
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight mb-6">
-        Open Play <span class="text-green-600">Pickleball</span>
+        Just Show Up <span class="text-green-600">and Play</span>
       </h1>
       <p class="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-        No reservations, no commitment — just show up and play. Join our drop-in open play games every week.
+        No reservations, no commitment, no pressure. Bring a paddle, find a game, and jump in. Everyone is welcome.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="#courts" class="px-8 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-          Where We Play <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <a href="#schedule" class="px-8 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+          See Schedule <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </a>
         <a href="#leaderboard" class="px-8 py-4 bg-white border border-gray-300 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
           View Leaderboard
@@ -76,50 +80,49 @@
     </div>
   </section>
 
-  <!-- Quick stats -->
-  <section class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
-        <div class="p-6 bg-gray-50 rounded-xl text-center">
-          <div class="text-3xl font-bold text-green-600">6</div>
-          <div class="text-sm text-gray-500 mt-1">Open Play Courts</div>
-        </div>
-        <div class="p-6 bg-gray-50 rounded-xl text-center">
-          <div class="text-3xl font-bold text-green-600">84</div>
-          <div class="text-sm text-gray-500 mt-1">Regular Players</div>
-        </div>
-        <div class="p-6 bg-gray-50 rounded-xl text-center">
-          <div class="text-3xl font-bold text-green-600">24</div>
-          <div class="text-sm text-gray-500 mt-1">Weekly Sessions</div>
-        </div>
-        <div class="p-6 bg-gray-50 rounded-xl text-center">
-          <div class="text-3xl font-bold text-green-600">7</div>
-          <div class="text-sm text-gray-500 mt-1">Days Open</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Where We Play -->
-  <section id="courts" class="py-12 sm:py-20 bg-gray-50">
+  <!-- How it works -->
+  <section id="how-it-works" class="py-12 sm:py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row justify-between items-end mb-10">
-        <div>
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">Where We Play</h2>
-          <p class="text-gray-600">Drop-in open play courts and times</p>
-        </div>
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">How Open Play Works</h2>
+        <p class="text-gray-600 max-w-2xl mx-auto">New to open play? Here's what to expect.</p>
       </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="courts-grid">
-        <!-- Courts injected by JS -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+        <div class="text-center p-6 rounded-xl bg-green-50 border border-green-100">
+          <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
+            1
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Bring a Paddle</h3>
+          <p class="text-gray-600 text-sm">Just bring yourself and a paddle. We'll help you find a court.</p>
+        </div>
+        <div class="text-center p-6 rounded-xl bg-green-50 border border-green-100">
+          <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
+            2
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Join a Game</h3>
+          <p class="text-gray-600 text-sm">Games are played to 11, win by 2. Winners stay on, challengers rotate in.</p>
+        </div>
+        <div class="text-center p-6 rounded-xl bg-green-50 border border-green-100">
+          <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
+            3
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Play & Rotate</h3>
+          <p class="text-gray-600 text-sm">All skill levels welcome. We mix up teams so everyone gets to play.</p>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Open Play Schedule -->
-  <section id="schedule" class="py-12 sm:py-20 bg-white">
+  <section id="schedule" class="py-12 sm:py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Open Play Schedule</h2>
+      <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+        <div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Weekly Schedule</h2>
+          <p class="text-gray-600">Drop-in times for open play</p>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="schedule-grid">
         <!-- Schedule injected by JS -->
       </div>
@@ -127,7 +130,7 @@
   </section>
 
   <!-- Leaderboard -->
-  <section id="leaderboard" class="py-12 sm:py-20 bg-gray-50">
+  <section id="leaderboard" class="py-12 sm:py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Player Leaderboard</h2>
       <div class="overflow-x-auto">
@@ -151,7 +154,7 @@
   </section>
 
   <!-- Matches -->
-  <section id="matches" class="py-12 sm:py-20 bg-white">
+  <section id="matches" class="py-12 sm:py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row justify-between items-end mb-10">
         <div>
@@ -239,37 +242,6 @@
       setTimeout(() => toast.classList.add('translate-y-20'), 3000);
     }
 
-    // Courts data (open play courts)
-    const courts = [
-      { id: 'court-1', name: 'North Courts', type: 'Outdoor', status: 'Open Play', times: '6 AM – 10 AM', image: 'https://images.unsplash.com/photo-1615718454837-0a8efc0e7a5d?w=400&h=300&fit=crop' },
-      { id: 'court-2', name: 'South Courts', type: 'Outdoor', status: 'Open Play', times: '4 PM – 8 PM', image: 'https://images.unsplash.com/photo-1597758370891-0977794b63a8?w=400&h=300&fit=crop' },
-      { id: 'court-3', name: 'Community Center', type: 'Indoor', status: 'Open Play', times: '12 PM – 4 PM', image: 'https://images.unsplash.com/photo-1610651960642-0b9e8c8e8f3b?w=400&h=300&fit=crop' },
-      { id: 'court-4', name: 'East Side', type: 'Outdoor', status: 'Open Play', times: '8 AM – 12 PM', image: 'https://images.unsplash.com/photo-1574628021263-ebf5b9e0e0b2?w=400&h=300&fit=crop' },
-      { id: 'court-5', name: 'West Courts', type: 'Outdoor', status: 'Open Play', times: '5 PM – 9 PM', image: 'https://images.unsplash.com/photo-1615718454837-0a8efc0e7a5d?w=400&h=300&fit=crop' },
-      { id: 'court-6', name: 'Downtown', type: 'Indoor', status: 'Open Play', times: '10 AM – 2 PM', image: 'https://images.unsplash.com/photo-1597758370891-0977794b63a8?w=400&h=300&fit=crop' },
-    ];
-
-    function renderCourts() {
-      const grid = document.getElementById('courts-grid');
-      grid.innerHTML = courts.map(c => `
-        <div class="court-card bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition">
-          <img src="${c.image}" alt="${c.name}" class="w-full h-48 object-cover" />
-          <div class="p-5">
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="text-lg font-bold text-gray-900">${c.name}</h3>
-              <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">${c.status}</span>
-            </div>
-            <p class="text-gray-600 text-sm mb-3">${c.type} court</p>
-            <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <span>${c.times}</span>
-            </div>
-            <p class="text-sm text-gray-400 italic">Drop-in welcome — no reservation needed</p>
-          </div>
-        </div>
-      `).join('');
-    }
-
     // Open play schedule data
     const schedule = [
       { day: 'Monday', time: '6:00 PM – 9:00 PM', court: 'North Courts', level: 'All levels' },
@@ -284,10 +256,10 @@
     function renderSchedule() {
       const grid = document.getElementById('schedule-grid');
       grid.innerHTML = schedule.map(s => `
-        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div class="schedule-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div class="flex justify-between items-start mb-2">
-            <span class="font-bold text-gray-900">${s.day}</span>
-            <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full border border-gray-200">${s.level}</span>
+            <span class="font-bold text-gray-900 text-lg">${s.day}</span>
+            <span class="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full border border-gray-200">${s.level}</span>
           </div>
           <p class="text-green-600 font-medium text-sm mb-1">${s.time}</p>
           <p class="text-gray-600 text-sm">${s.court}</p>
@@ -358,7 +330,6 @@
     });
 
     // Initialize
-    renderCourts();
     renderSchedule();
     renderLeaderboard();
     renderMatches();
