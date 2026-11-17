@@ -17,6 +17,7 @@
     .match-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
     .game-row { transition: background 0.2s; }
     .game-row:hover { background: #f9fafb; }
+    .skill-badge { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
@@ -36,6 +37,7 @@
           <a href="#join" class="nav-link text-gray-600 hover:text-green-600 font-medium">Join Queue</a>
           <a href="#leaderboard" class="nav-link text-gray-600 hover:text-green-600 font-medium">Leaderboard</a>
           <a href="#matches" class="nav-link text-gray-600 hover:text-green-600 font-medium">Matches</a>
+          <a href="#history" class="nav-link text-gray-600 hover:text-green-600 font-medium">History</a>
           <a href="#contact" class="nav-link text-gray-600 hover:text-green-600 font-medium">Contact</a>
         </div>
         <div class="md:hidden flex items-center">
@@ -53,6 +55,7 @@
         <a href="#join" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Join Queue</a>
         <a href="#leaderboard" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Leaderboard</a>
         <a href="#matches" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Matches</a>
+        <a href="#history" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">History</a>
         <a href="#contact" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Contact</a>
       </div>
     </div>
@@ -103,14 +106,14 @@
             2
           </div>
           <h3 class="text-lg font-bold text-gray-900 mb-2">Get Matched (2 vs 2)</h3>
-          <p class="text-gray-600 text-sm">We group 4 players into a doubles match — 2 vs 2 on the court.</p>
+          <p class="text-gray-600 text-sm">Players are matched by skill level into balanced doubles teams.</p>
         </div>
         <div class="text-center p-6 rounded-xl bg-green-50 border border-green-100">
           <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
             3
           </div>
           <h3 class="text-lg font-bold text-gray-900 mb-2">Record Game Scores</h3>
-          <p class="text-gray-600 text-sm">Enter each game's score (to 11) to update player stats.</p>
+          <p class="text-gray-600 text-sm">Enter each game's score (to 11) to update player stats and history.</p>
         </div>
       </div>
     </div>
@@ -190,7 +193,7 @@
     </div>
   </section>
 
-  <!-- Matches / Next Match -->
+  <!-- Upcoming Matches -->
   <section id="matches" class="py-12 sm:py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row justify-between items-end mb-10">
@@ -223,6 +226,22 @@
         <div class="col-span-full text-center py-16 text-gray-400">
           No matches yet. Create one from the matchmaking queue!
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Match History -->
+  <section id="history" class="py-12 sm:py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-end mb-10">
+        <div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Match History</h2>
+          <p class="text-gray-600">All completed matches with recorded scores</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" id="history-container">
+        <!-- History injected by JS -->
       </div>
     </div>
   </section>
@@ -329,15 +348,39 @@
       setTimeout(() => toast.classList.add('translate-y-20'), 3000);
     }
 
+    // Skill level colors
+    const skillColors = {
+      Beginner: 'bg-blue-100 text-blue-700',
+      Intermediate: 'bg-purple-100 text-purple-700',
+      Advanced: 'bg-orange-100 text-orange-700'
+    };
+
+    // Load data from localStorage
+    function loadData() {
+      const saved = localStorage.getItem('pickleball-data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        queue = parsed.queue || [];
+        matches = parsed.matches || [];
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('pickleball-data', JSON.stringify({ queue, matches }));
+    }
+
     // Player queue state
     let queue = [];
 
-    // Matches data (starts empty, populated by matchmaking)
+    // Matches data (includes upcoming + completed, all stored in localStorage)
     let matches = [];
 
     // Score modal state
     let currentMatchId = null;
     let gameCount = 1;
+
+    // Initialize from storage
+    loadData();
 
     // Join form
     document.getElementById('join-form').addEventListener('submit', (e) => {
@@ -347,39 +390,58 @@
 
       if (!name) return;
 
-      const player = { id: Date.now(), name, level, joinedAt: new Date() };
+      const player = { id: Date.now(), name, level, joinedAt: new Date().toISOString() };
       queue.push(player);
+      saveData();
       renderQueue();
       document.getElementById('join-form').reset();
       showToast(`${name} joined the queue!`);
     });
 
-    // Make match - groups 4 players into a 2 vs 2 match
+    // Make match - groups 4 players into balanced 2 vs 2 teams by skill level
     document.getElementById('make-match-btn').addEventListener('click', () => {
       if (queue.length < 4) {
         showToast('Need at least 4 players to make a 2 vs 2 match');
         return;
       }
 
-      const matchPlayers = queue.splice(0, 4);
+      // Sort queue by skill level for balanced matching
+      const skillOrder = { Beginner: 0, Intermediate: 1, Advanced: 2 };
+      const sorted = [...queue].sort((a, b) => skillOrder[a.level] - skillOrder[b.level]);
+
+      // Take first 4 players and split into balanced teams
+      // Strategy: pair highest with lowest vs middle two (snake draft style)
+      const fourPlayers = sorted.slice(0, 4);
+      const team1 = [fourPlayers[0], fourPlayers[3]]; // highest + lowest
+      const team2 = [fourPlayers[1], fourPlayers[2]]; // two middle
+
+      const remaining = sorted.slice(4);
       const matchTime = new Date();
       matchTime.setMinutes(matchTime.getMinutes() + 15);
 
       const match = {
         id: Date.now(),
-        team1: matchPlayers.slice(0, 2),  // Team 1: first 2 players
-        team2: matchPlayers.slice(2, 4),  // Team 2: last 2 players
-        time: matchTime,
+        team1,
+        team2,
+        time: matchTime.toISOString(),
         court: `Court ${Math.floor(Math.random() * 6) + 1}`,
         status: 'Ready',
-        games: []  // Array of { team1: score, team2: score }
+        games: []
       };
 
+      // Remove matched players from queue
+      queue = remaining;
       matches.unshift(match);
+      saveData();
       renderQueue();
       renderMatches();
-      showToast(`2 vs 2 match created on ${match.court}`);
+      renderHistory();
+      showToast(`Balanced 2 vs 2 match created on ${match.court}`);
     });
+
+    function skillBadge(level) {
+      return `<span class="skill-badge px-2 py-1 rounded-full border ${skillColors[level] || 'bg-gray-100 text-gray-600'} border-${skillColors[level] ? skillColors[level].split('-')[1] : 'gray'}">${level}</span>`;
+    }
 
     function renderQueue() {
       const list = document.getElementById('queue-list');
@@ -400,16 +462,22 @@
             </div>
             <div>
               <div class="font-semibold text-gray-900">${p.name}</div>
-              <div class="text-xs text-gray-500">${p.level}</div>
+              <div class="flex items-center gap-1">
+                ${skillBadge(p.level)}
+                <span class="text-xs text-gray-400">• Joined ${formatTime(p.joinedAt)}</span>
+              </div>
             </div>
           </div>
-          <div class="text-xs text-gray-400">Joined ${formatTime(p.joinedAt)}</div>
         </div>
       `).join('');
     }
 
-    function formatTime(date) {
-      return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    function formatTime(isoString) {
+      return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDate(isoString) {
+      return new Date(isoString).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
     function renderLeaderboard() {
@@ -418,9 +486,8 @@
       // Build leaderboard from matches that have recorded game scores
       const stats = {};
       matches.forEach(m => {
-        if (!m.games || m.games.length === 0) return; // Only count matches with recorded scores
+        if (!m.games || m.games.length === 0) return;
 
-        // Register all players
         [...m.team1, ...m.team2].forEach(p => {
           if (!stats[p.name]) {
             stats[p.name] = { name: p.name, level: p.level, gamesWon: 0, gamesLost: 0, pointsFor: 0, pointsAgainst: 0 };
@@ -430,7 +497,6 @@
         m.games.forEach(g => {
           const team1Won = g.team1 > g.team2;
 
-          // Team 1 players
           m.team1.forEach(p => {
             stats[p.name].gamesWon += team1Won ? 1 : 0;
             stats[p.name].gamesLost += team1Won ? 0 : 1;
@@ -438,7 +504,6 @@
             stats[p.name].pointsAgainst += g.team2;
           });
 
-          // Team 2 players
           m.team2.forEach(p => {
             stats[p.name].gamesWon += team1Won ? 0 : 1;
             stats[p.name].gamesLost += team1Won ? 1 : 0;
@@ -468,7 +533,7 @@
           <tr class="player-row">
             <td class="px-6 py-4 font-bold text-gray-600">${i + 1}</td>
             <td class="px-6 py-4 font-medium text-gray-900">${p.name}</td>
-            <td class="px-6 py-4 text-gray-600"><span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border border-gray-200">${p.level}</span></td>
+            <td class="px-6 py-4 text-gray-600">${skillBadge(p.level)}</td>
             <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.gamesWon}</td>
             <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.gamesLost}</td>
             <td class="px-6 py-4 text-gray-600 text-right">${winPct}%</td>
@@ -564,16 +629,19 @@
 
       match.games = games;
       match.status = 'Completed';
+      match.completedAt = new Date().toISOString();
 
       // Put players back in the waiting queue after the game
       [...match.team1, ...match.team2].forEach(p => {
-        queue.push({ ...p, joinedAt: new Date() });
+        queue.push({ ...p, joinedAt: new Date().toISOString() });
       });
 
+      saveData();
       closeScoreModal();
       renderQueue();
       renderMatches();
       renderLeaderboard();
+      renderHistory();
       showToast('Game scores recorded! Players are back in the queue.');
     });
 
@@ -615,63 +683,105 @@
         highlight.classList.add('hidden');
       }
 
-      grid.innerHTML = matches.map(m => {
-        const team1Names = m.team1.map(p => p.name).join(' & ');
-        const team2Names = m.team2.map(p => p.name).join(' & ');
+      grid.innerHTML = matches
+        .filter(m => !m.games || m.games.length === 0)
+        .map(m => {
+          const team1Names = m.team1.map(p => p.name).join(' & ');
+          const team2Names = m.team2.map(p => p.name).join(' & ');
 
-        let scoreDisplay = '<span class="text-gray-400">No scores</span>';
-        if (m.games && m.games.length > 0) {
-          scoreDisplay = m.games.map((g, i) => `Game ${i + 1}: ${g.team1}-${g.team2}`).join(' • ');
-        }
-
-        const team1Wins = m.games ? m.games.filter(g => g.team1 > g.team2).length : 0;
-        const team2Wins = m.games ? m.games.filter(g => g.team2 > g.team1).length : 0;
-        const matchWinner = team1Wins > team2Wins ? 'Team 1' : team2Wins > team1Wins ? 'Team 2' : 'Tie';
-
-        return `
-          <div class="match-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-            <div class="flex justify-between items-start mb-3">
-              <h3 class="text-lg font-bold text-gray-900">${team1Names} vs ${team2Names}</h3>
-              <span class="px-3 py-1 ${m.games && m.games.length > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} text-xs font-medium rounded-full">
-                ${m.games && m.games.length > 0 ? 'Completed' : 'Ready'}
-              </span>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 1</div>
-                <div class="font-medium text-gray-900">${m.team1.map(p => p.name).join(', ')}</div>
-                ${m.games && m.games.length > 0 ? `<div class="text-xs text-green-600 mt-1">Games won: ${team1Wins}</div>` : ''}
+          return `
+            <div class="match-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <div class="flex justify-between items-start mb-3">
+                <h3 class="text-lg font-bold text-gray-900">${team1Names} vs ${team2Names}</h3>
+                <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">Ready</span>
               </div>
-              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 2</div>
-                <div class="font-medium text-gray-900">${m.team2.map(p => p.name).join(', ')}</div>
-                ${m.games && m.games.length > 0 ? `<div class="text-xs text-green-600 mt-1">Games won: ${team2Wins}</div>` : ''}
-              </div>
-            </div>
-            <div class="mb-4">
-              <div class="text-xs text-gray-500 mb-2">Game Scores</div>
-              <div class="text-sm text-gray-700">${scoreDisplay}</div>
-              ${m.games && m.games.length > 0 ? `<div class="text-xs text-gray-500 mt-1">Match winner: ${matchWinner}</div>` : ''}
-            </div>
-            <div class="flex justify-between items-center mb-4">
-              <div>
-                <p class="text-gray-600 text-sm mb-1"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>${formatTime(m.time)}</p>
-                <p class="text-gray-600 text-sm"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${m.court}</p>
-              </div>
-              <div class="text-right">
-                <div class="text-xs text-gray-500 mb-1">Match Result</div>
-                <div class="font-mono text-lg font-bold text-gray-900">
-                  ${m.games && m.games.length > 0 ? `${team1Wins}-${team2Wins} games` : '–'}
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 1</div>
+                  <div class="font-medium text-gray-900">${m.team1.map(p => p.name).join(', ')}</div>
+                  <div class="flex gap-2 mt-2">
+                    ${m.team1.map(p => skillBadge(p.level)).join('')}
+                  </div>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 2</div>
+                  <div class="font-medium text-gray-900">${m.team2.map(p => p.name).join(', ')}</div>
+                  <div class="flex gap-2 mt-2">
+                    ${m.team2.map(p => skillBadge(p.level)).join('')}
+                  </div>
                 </div>
               </div>
+              <div class="flex justify-between items-center mb-4">
+                <div>
+                  <p class="text-gray-600 text-sm mb-1"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>${formatTime(m.time)}</p>
+                  <p class="text-gray-600 text-sm"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${m.court}</p>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs text-gray-500 mb-1">Match Result</div>
+                  <div class="font-mono text-lg font-bold text-gray-900">–</div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="openScoreModal(${m.id})" class="flex-1 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">Record Scores</button>
+                <button class="w-10 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition" title="Delete match" onclick="deleteMatch(${m.id})">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+              </div>
             </div>
-            <div class="flex gap-2">
-              ${m.games && m.games.length > 0
-                ? '<button class="flex-1 py-2 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium disabled:opacity-50" disabled>Scores Recorded</button>'
-                : `<button onclick="openScoreModal(${m.id})" class="flex-1 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">Record Scores</button>`}
-              <button class="w-10 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition" title="Delete match" onclick="deleteMatch(${m.id})">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-              </button>
+          `;
+        }).join('');
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history-container');
+      const completed = matches.filter(m => m.games && m.games.length > 0);
+
+      if (completed.length === 0) {
+        container.innerHTML = `
+          <div class="p-12 text-center text-gray-400">
+            No match history yet. Complete a match and record scores to see it here.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = completed.map(m => {
+        const team1Names = m.team1.map(p => p.name).join(' & ');
+        const team2Names = m.team2.map(p => p.name).join(' & ');
+        const team1Wins = m.games.filter(g => g.team1 > g.team2).length;
+        const team2Wins = m.games.filter(g => g.team2 > g.team1).length;
+        const winner = team1Wins > team2Wins ? 'Team 1' : team2Wins > team1Wins ? 'Team 2' : 'Tie';
+        const scores = m.games.map((g, i) => `Game ${i + 1}: ${g.team1}-${g.team2}`).join(' • ');
+
+        return `
+          <div class="border-b border-gray-100 last:border-0 p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">${team1Names} vs ${team2Names}</h3>
+                <p class="text-sm text-gray-500">${formatDate(m.completedAt || m.time)} • ${m.court}</p>
+              </div>
+              <div class="flex items-center gap-4">
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Completed</span>
+                <span class="font-mono text-lg font-bold text-gray-900">${team1Wins}-${team2Wins}</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-3">
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 1 (Winner: ${winner === 'Team 1' ? 'Yes' : 'No'})</div>
+                <div class="font-medium text-gray-900">${m.team1.map(p => `${p.name} (${p.level})`).join(', ')}</div>
+              </div>
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 2 (Winner: ${winner === 'Team 2' ? 'Yes' : 'No'})</div>
+                <div class="font-medium text-gray-900">${m.team2.map(p => `${p.name} (${p.level})`).join(', ')}</div>
+              </div>
+            </div>
+            <div class="flex justify-between items-center">
+              <div class="text-sm text-gray-600">
+                <span class="font-semibold">Scores:</span> ${scores}
+              </div>
+              <div class="text-right">
+                <span class="text-xs text-gray-500 uppercase tracking-wider">Match winner: ${winner}</span>
+              </div>
             </div>
           </div>
         `;
@@ -681,8 +791,10 @@
     function deleteMatch(matchId) {
       if (!confirm('Delete this match? All recorded scores will be removed.')) return;
       matches = matches.filter(m => m.id !== matchId);
+      saveData();
       renderMatches();
       renderLeaderboard();
+      renderHistory();
       showToast('Match deleted.');
     }
 
@@ -695,8 +807,9 @@
 
     // Initialize
     renderQueue();
-    renderLeaderboard();
     renderMatches();
+    renderLeaderboard();
+    renderHistory();
 
     // Smooth scroll for nav links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
