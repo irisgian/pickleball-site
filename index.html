@@ -236,8 +236,12 @@
       <div class="flex flex-col md:flex-row justify-between items-end mb-10">
         <div>
           <h2 class="text-3xl font-bold text-gray-900 mb-2">Match History</h2>
-          <p class="text-gray-600">All completed matches with recorded scores</p>
+          <p class="text-gray-600">All completed matches with recorded scores. Data is saved in your browser and persists on refresh.</p>
         </div>
+        <button onclick="resetAllData()" class="px-6 py-3 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition shadow-sm flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          Reset All Data
+        </button>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" id="history-container">
@@ -796,6 +800,18 @@
       renderLeaderboard();
       renderHistory();
       showToast('Match deleted.');
+    }
+
+    function resetAllData() {
+      if (!confirm('Reset all data? This will clear the queue, all matches, and leaderboard. This cannot be undone.')) return;
+      queue = [];
+      matches = [];
+      saveData();
+      renderQueue();
+      renderMatches();
+      renderLeaderboard();
+      renderHistory();
+      showToast('All data has been reset.');
     }
 
     // Contact form
