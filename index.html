@@ -391,26 +391,26 @@
       `).join('');
     }
 
-    // Leaderboard data
-    const players = [
-      { rank: 1, name: 'Sarah Chen', level: 'Advanced', wins: 24, losses: 4 },
-      { rank: 2, name: 'Mike Rodriguez', level: 'Advanced', wins: 22, losses: 6 },
-      { rank: 3, name: 'Jessica Lee', level: 'Intermediate', wins: 20, losses: 8 },
-      { rank: 4, name: 'David Kim', level: 'Intermediate', wins: 18, losses: 10 },
-      { rank: 5, name: 'Amanda Foster', level: 'Beginner', wins: 15, losses: 13 },
-      { rank: 6, name: 'Chris Patel', level: 'Beginner', wins: 12, losses: 16 },
-      { rank: 7, name: 'Rachel Green', level: 'Intermediate', wins: 10, losses: 18 },
-      { rank: 8, name: 'Tom Wright', level: 'Beginner', wins: 8, losses: 20 },
-    ];
+    // Leaderboard data (starts empty)
+    const players = [];
 
     function renderLeaderboard() {
       const body = document.getElementById('leaderboard-body');
-      body.innerHTML = players.map(p => {
+      if (players.length === 0) {
+        body.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+              No players yet. Be the first to join the queue!
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      body.innerHTML = players.map((p, i) => {
         const winPct = Math.round((p.wins / (p.wins + p.losses)) * 100);
-        const rankBadge = p.rank === 1 ? 'text-yellow-600' : p.rank === 2 ? 'text-gray-600' : p.rank === 3 ? 'text-orange-600' : 'text-gray-400';
         return `
           <tr class="player-row">
-            <td class="px-6 py-4 font-bold ${rankBadge}">${p.rank}</td>
+            <td class="px-6 py-4 font-bold text-gray-600">${i + 1}</td>
             <td class="px-6 py-4 font-medium text-gray-900">${p.name}</td>
             <td class="px-6 py-4 text-gray-600"><span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border border-gray-200">${p.level}</span></td>
             <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.wins}</td>
@@ -421,18 +421,19 @@
       }).join('');
     }
 
-    // Matches data (preloaded + dynamic from matchmaking)
-    let matches = [
-      { id: 1, opponent: 'Sarah Chen vs Mike Rodriguez', time: 'Today 6:00 PM', court: 'North Courts', status: 'Scheduled' },
-      { id: 2, opponent: 'Jessica Lee vs David Kim', time: 'Tomorrow 9:00 AM', court: 'South Courts', status: 'Scheduled' },
-      { id: 3, opponent: 'Amanda Foster vs Chris Patel', time: 'Tomorrow 11:00 AM', court: 'Community Center', status: 'Scheduled' },
-      { id: 4, opponent: 'Rachel Green vs Tom Wright', time: 'Tomorrow 2:00 PM', court: 'East Side', status: 'Scheduled' },
-      { id: 5, opponent: 'Sarah Chen vs Jessica Lee', time: 'Friday 6:00 PM', court: 'West Courts', status: 'Upcoming' },
-      { id: 6, opponent: 'Mike Rodriguez vs David Kim', time: 'Saturday 10:00 AM', court: 'Downtown', status: 'Upcoming' },
-    ];
+    // Matches data (starts empty, populated by matchmaking)
+    let matches = [];
 
     function renderMatches() {
       const grid = document.getElementById('matches-grid');
+      if (matches.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16 text-gray-400">
+            No matches yet. Create one from the matchmaking queue!
+          </div>
+        `;
+        return;
+      }
       grid.innerHTML = matches.map(m => `
         <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div class="flex justify-between items-start mb-3">
