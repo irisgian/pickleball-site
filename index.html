@@ -409,17 +409,38 @@
         return;
       }
 
-      // Sort queue by skill level for balanced matching
-      const skillOrder = { Beginner: 0, Intermediate: 1, Advanced: 2 };
-      const sorted = [...queue].sort((a, b) => skillOrder[a.level] - skillOrder[b.level]);
+      // Group players by skill level
+      const skillGroups = {};
+      queue.forEach(p => {
+        if (!skillGroups[p.level]) skillGroups[p.level] = [];
+        skillGroups[p.level].push(p);
+      });
 
-      // Take first 4 players and split into balanced teams
-      // Strategy: pair highest with lowest vs middle two (snake draft style)
-      const fourPlayers = sorted.slice(0, 4);
-      const team1 = [fourPlayers[0], fourPlayers[3]]; // highest + lowest
-      const team2 = [fourPlayers[1], fourPlayers[2]]; // two middle
+      // Find the skill level with at least 4 players
+      let selectedLevel = null;
+      for (const [level, players] of Object.entries(skillGroups)) {
+        if (players.length >= 4) {
+          selectedLevel = level;
+          break;
+        }
+      }
 
-      const remaining = sorted.slice(4);
+      if (!selectedLevel) {
+        showToast('Need at least 4 players of the same skill level to make a match');
+        return;
+      }
+
+      // Take 4 players from that skill level
+      const fourPlayers = skillGroups[selectedLevel].slice(0, 4);
+
+      // Split into balanced teams (snake draft: 1st & 4th vs 2nd & 3rd)
+      const team1 = [fourPlayers[0], fourPlayers[3]];
+      const team2 = [fourPlayers[1], fourPlayers[2]];
+
+      // Remove matched players from queue
+      const matchedIds = new Set(fourPlayers.map(p => p.id));
+      queue = queue.filter(p => !matchedIds.has(p.id));
+
       const matchTime = new Date();
       matchTime.setMinutes(matchTime.getMinutes() + 15);
 
@@ -430,17 +451,16 @@
         time: matchTime.toISOString(),
         court: `Court ${Math.floor(Math.random() * 6) + 1}`,
         status: 'Ready',
-        games: []
+        games: [],
+        skillLevel: selectedLevel
       };
 
-      // Remove matched players from queue
-      queue = remaining;
       matches.unshift(match);
       saveData();
       renderQueue();
       renderMatches();
       renderHistory();
-      showToast(`Balanced 2 vs 2 match created on ${match.court}`);
+      showToast(`${selectedLevel} 2 vs 2 match created on ${match.court}`);
     });
 
     function skillBadge(level) {
