@@ -100,15 +100,15 @@
           <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
             2
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Get Matched</h3>
-          <p class="text-gray-600 text-sm">We group players into games of 4 based on skill level and arrival time.</p>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Get Matched (2 vs 2)</h3>
+          <p class="text-gray-600 text-sm">We group 4 players into a doubles match — 2 vs 2 on the court.</p>
         </div>
         <div class="text-center p-6 rounded-xl bg-green-50 border border-green-100">
           <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
             3
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Play & Rotate</h3>
-          <p class="text-gray-600 text-sm">Games are played to 11, win by 2. Winners stay on, challengers rotate in.</p>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Record the Score</h3>
+          <p class="text-gray-600 text-sm">Enter the final score after the game to update the leaderboard.</p>
         </div>
       </div>
     </div>
@@ -151,7 +151,7 @@
               <p id="queue-count" class="text-gray-600">0 players in queue</p>
             </div>
             <button id="make-match-btn" class="px-6 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition shadow-sm">
-              Make Match
+              Make Match (2 vs 2)
             </button>
           </div>
           <div id="queue-list" class="space-y-3 min-h-[200px]">
@@ -167,6 +167,7 @@
   <section id="leaderboard" class="py-12 sm:py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Player Leaderboard</h2>
+      <p class="text-center text-gray-600 mb-8">Leaderboard updates when you record match scores.</p>
       <div class="overflow-x-auto">
         <table class="min-w-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200">
           <thead>
@@ -283,6 +284,36 @@
     <span id="toast-message">Action complete</span>
   </div>
 
+  <!-- Record Score Modal -->
+  <div id="score-modal" class="modal fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onclick="closeScoreModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-xl font-bold text-gray-900">Record Score</h3>
+          <p class="text-sm text-gray-500 mt-1" id="score-modal-match-info"></p>
+        </div>
+        <div class="p-6 space-y-4">
+          <form id="score-form" class="space-y-4">
+            <input type="hidden" id="score-match-id" />
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Team 1 Score</label>
+              <input type="number" id="score-team1" min="0" max="30" required placeholder="e.g. 11" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Team 2 Score</label>
+              <input type="number" id="score-team2" min="0" max="30" required placeholder="e.g. 7" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition" />
+            </div>
+            <div class="flex gap-3">
+              <button type="button" onclick="closeScoreModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition">Cancel</button>
+              <button type="submit" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg hover:shadow-xl">Save Score</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Mobile menu toggle
     document.getElementById('mobile-menu-btn').addEventListener('click', () => {
@@ -300,11 +331,14 @@
     // Player queue state
     let queue = [];
 
-    // Leaderboard data (starts empty)
+    // Leaderboard data (starts empty, built from recorded match scores)
     let players = [];
 
     // Matches data (starts empty, populated by matchmaking)
     let matches = [];
+
+    // Score modal state
+    let currentMatchId = null;
 
     // Join form
     document.getElementById('join-form').addEventListener('submit', (e) => {
@@ -317,15 +351,14 @@
       const player = { id: Date.now(), name, level, joinedAt: new Date() };
       queue.push(player);
       renderQueue();
-      renderLeaderboard();
       document.getElementById('join-form').reset();
       showToast(`${name} joined the queue!`);
     });
 
-    // Make match - groups 4 players into a match
+    // Make match - groups 4 players into a 2 vs 2 match
     document.getElementById('make-match-btn').addEventListener('click', () => {
       if (queue.length < 4) {
-        showToast('Need at least 4 players to make a match');
+        showToast('Need at least 4 players to make a 2 vs 2 match');
         return;
       }
 
@@ -335,17 +368,18 @@
 
       const match = {
         id: Date.now(),
-        players: matchPlayers,
+        team1: matchPlayers.slice(0, 2),  // Team 1: first 2 players
+        team2: matchPlayers.slice(2, 4),  // Team 2: last 2 players
         time: matchTime,
         court: `Court ${Math.floor(Math.random() * 6) + 1}`,
-        status: 'Ready'
+        status: 'Ready',
+        score: null  // No score yet - entered manually
       };
 
       matches.unshift(match);
       renderQueue();
       renderMatches();
-      renderLeaderboard();
-      showToast(`Match created! ${matchPlayers.map(p => p.name).join(', ')} on ${match.court}`);
+      showToast(`2 vs 2 match created on ${match.court}`);
     });
 
     function renderQueue() {
@@ -381,32 +415,46 @@
 
     function renderLeaderboard() {
       const body = document.getElementById('leaderboard-body');
-      if (players.length === 0 && matches.length === 0) {
+
+      // Build leaderboard from matches that have recorded scores
+      const stats = {};
+      matches.forEach(m => {
+        if (!m.score) return; // Only count matches with recorded scores
+
+        const team1Won = m.score.team1 > m.score.team2;
+
+        // Register all players
+        [...m.team1, ...m.team2].forEach(p => {
+          if (!stats[p.name]) {
+            stats[p.name] = { name: p.name, level: p.level, wins: 0, losses: 0 };
+          }
+        });
+
+        // Team 1 players
+        m.team1.forEach(p => {
+          if (team1Won) stats[p.name].wins++;
+          else stats[p.name].losses++;
+        });
+
+        // Team 2 players
+        m.team2.forEach(p => {
+          if (!team1Won) stats[p.name].wins++;
+          else stats[p.name].losses++;
+        });
+      });
+
+      const sorted = Object.values(stats).sort((a, b) => b.wins - a.wins);
+
+      if (sorted.length === 0) {
         body.innerHTML = `
           <tr>
             <td colspan="6" class="px-6 py-12 text-center text-gray-400">
-              No players yet. Be the first to join the queue!
+              No recorded scores yet. Play a match and record the score!
             </td>
           </tr>
         `;
         return;
       }
-
-      // Build leaderboard from match history
-      const stats = {};
-      matches.forEach(m => {
-        m.players.forEach(p => {
-          if (!stats[p.name]) {
-            stats[p.name] = { name: p.name, level: p.level, wins: 0, losses: 0 };
-          }
-        });
-        // Simple: first 2 players win, last 2 lose (for demo tracking)
-        // In real use you'd record actual results
-        m.players.slice(0, 2).forEach(p => { stats[p.name].wins++; });
-        m.players.slice(2).forEach(p => { stats[p.name].losses++; });
-      });
-
-      const sorted = Object.values(stats).sort((a, b) => b.wins - a.wins);
 
       body.innerHTML = sorted.map((p, i) => {
         const winPct = p.wins + p.losses === 0 ? 0 : Math.round((p.wins / (p.wins + p.losses)) * 100);
@@ -423,12 +471,62 @@
       }).join('');
     }
 
+    function openScoreModal(matchId) {
+      const match = matches.find(m => m.id === matchId);
+      if (!match) return;
+
+      currentMatchId = matchId;
+      document.getElementById('score-modal-match-info').textContent =
+        `${match.team1.map(p => p.name).join(' & ')} vs ${match.team2.map(p => p.name).join(' & ')}`;
+      document.getElementById('score-match-id').value = matchId;
+      document.getElementById('score-team1').value = match.score ? match.score.team1 : '';
+      document.getElementById('score-team2').value = match.score ? match.score.team2 : '';
+      document.getElementById('score-modal').classList.add('open');
+    }
+
+    function closeScoreModal() {
+      document.getElementById('score-modal').classList.remove('open');
+      currentMatchId = null;
+    }
+
+    // Score form submit
+    document.getElementById('score-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const match = matches.find(m => m.id === currentMatchId);
+      if (!match) return;
+
+      match.score = {
+        team1: parseInt(document.getElementById('score-team1').value),
+        team2: parseInt(document.getElementById('score-team2').value)
+      };
+      match.status = 'Completed';
+
+      // Put players back in the waiting queue after the game
+      [...match.team1, ...match.team2].forEach(p => {
+        queue.push({ ...p, joinedAt: new Date() });
+      });
+
+      closeScoreModal();
+      renderQueue();
+      renderMatches();
+      renderLeaderboard();
+      showToast('Score recorded! Players are back in the queue.');
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('score-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'score-modal') closeScoreModal();
+    });
+
     function renderMatches() {
       const grid = document.getElementById('matches-grid');
       const highlight = document.getElementById('next-match-highlight');
       const nextTitle = document.getElementById('next-match-title');
       const nextDetails = document.getElementById('next-match-details');
       const nextCourt = document.getElementById('next-match-court');
+
+      // Find next upcoming match (no score yet)
+      const nextMatch = matches.find(m => !m.score);
 
       if (matches.length === 0) {
         highlight.classList.add('hidden');
@@ -441,23 +539,61 @@
       }
 
       // Show next match highlight
-      const next = matches[0];
-      highlight.classList.remove('hidden');
-      nextTitle.textContent = next.players.map(p => p.name).join(' vs ');
-      nextDetails.textContent = `${next.status} • ${formatTime(next.time)}`;
-      nextCourt.textContent = next.court;
+      if (nextMatch) {
+        highlight.classList.remove('hidden');
+        nextTitle.textContent = `${nextMatch.team1.map(p => p.name).join(' & ')} vs ${nextMatch.team2.map(p => p.name).join(' & ')}`;
+        nextDetails.textContent = `${nextMatch.status} • ${formatTime(nextMatch.time)}`;
+        nextCourt.textContent = nextMatch.court;
+      } else {
+        highlight.classList.add('hidden');
+      }
 
-      grid.innerHTML = matches.map(m => `
-        <div class="match-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div class="flex justify-between items-start mb-3">
-            <h3 class="text-lg font-bold text-gray-900">${m.players.map(p => p.name).join(' vs ')}</h3>
-            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">${m.status}</span>
+      grid.innerHTML = matches.map(m => {
+        const team1Names = m.team1.map(p => p.name).join(' & ');
+        const team2Names = m.team2.map(p => p.name).join(' & ');
+        const scoreDisplay = m.score
+          ? `<span class="font-mono text-xl font-bold">${m.score.team1} - ${m.score.team2}</span>`
+          : '<span class="text-gray-400">Score not recorded</span>';
+
+        return `
+          <div class="match-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div class="flex justify-between items-start mb-3">
+              <h3 class="text-lg font-bold text-gray-900">${team1Names} vs ${team2Names}</h3>
+              <span class="px-3 py-1 ${m.score ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} text-xs font-medium rounded-full">
+                ${m.score ? 'Completed' : 'Ready'}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 1</div>
+                <div class="font-medium text-gray-900">${m.team1.map(p => p.name).join(', ')}</div>
+              </div>
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Team 2</div>
+                <div class="font-medium text-gray-900">${m.team2.map(p => p.name).join(', ')}</div>
+              </div>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <p class="text-gray-600 text-sm mb-1"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>${formatTime(m.time)}</p>
+                <p class="text-gray-600 text-sm"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${m.court}</p>
+              </div>
+              <div class="text-right">
+                <div class="text-xs text-gray-500 mb-1">Score</div>
+                <div class="font-mono text-xl font-bold text-gray-900">${m.score ? `${m.score.team1} - ${m.score.team2}` : '–'}</div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              ${m.score
+                ? '<button class="flex-1 py-2 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium disabled:opacity-50" disabled>Recorded</button>'
+                : `<button onclick="openScoreModal(${m.id})" class="flex-1 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">Record Score</button>`}
+              <button class="w-10 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
           </div>
-          <p class="text-gray-600 text-sm mb-1"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>${formatTime(m.time)}</p>
-          <p class="text-gray-600 text-sm mb-4"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${m.court}</p>
-          <button class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">View Details</button>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // Contact form
