@@ -10,11 +10,11 @@
     body { font-family: 'Inter', sans-serif; }
     .nav-link { transition: color 0.2s; }
     .nav-link:hover, .nav-link:focus { color: #2563eb; }
-    .schedule-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
     .player-row:nth-child(even) { background: #f9fafb; }
     .modal { display: none; opacity: 0; transition: opacity 0.3s; }
     .modal.open { display: block; opacity: 1; }
     .queue-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
+    .match-card:hover { transform: translateY(-2px); transition: transform 0.2s; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
@@ -31,7 +31,7 @@
         </div>
         <div class="hidden md:flex space-x-8">
           <a href="#home" class="nav-link text-gray-600 hover:text-green-600 font-medium">Home</a>
-          <a href="#schedule" class="nav-link text-gray-600 hover:text-green-600 font-medium">Schedule</a>
+          <a href="#join" class="nav-link text-gray-600 hover:text-green-600 font-medium">Join Queue</a>
           <a href="#leaderboard" class="nav-link text-gray-600 hover:text-green-600 font-medium">Leaderboard</a>
           <a href="#matches" class="nav-link text-gray-600 hover:text-green-600 font-medium">Matches</a>
           <a href="#contact" class="nav-link text-gray-600 hover:text-green-600 font-medium">Contact</a>
@@ -48,7 +48,7 @@
     <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
       <div class="px-4 py-4 space-y-4">
         <a href="#home" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Home</a>
-        <a href="#schedule" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Schedule</a>
+        <a href="#join" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Join Queue</a>
         <a href="#leaderboard" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Leaderboard</a>
         <a href="#matches" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Matches</a>
         <a href="#contact" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Contact</a>
@@ -74,8 +74,8 @@
         <a href="#join" class="px-8 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
           Join the Queue <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
         </a>
-        <a href="#schedule" class="px-8 py-4 bg-white border border-gray-300 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
-          View Schedule
+        <a href="#leaderboard" class="px-8 py-4 bg-white border border-gray-300 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
+          View Leaderboard
         </a>
       </div>
     </div>
@@ -163,22 +163,6 @@
     </div>
   </section>
 
-  <!-- Open Play Schedule -->
-  <section id="schedule" class="py-12 sm:py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row justify-between items-end mb-12">
-        <div>
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">Weekly Schedule</h2>
-          <p class="text-gray-600">Drop-in times for open play</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="schedule-grid">
-        <!-- Schedule injected by JS -->
-      </div>
-    </div>
-  </section>
-
   <!-- Leaderboard -->
   <section id="leaderboard" class="py-12 sm:py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -203,18 +187,39 @@
     </div>
   </section>
 
-  <!-- Matches -->
+  <!-- Matches / Next Match -->
   <section id="matches" class="py-12 sm:py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row justify-between items-end mb-10">
         <div>
           <h2 class="text-3xl font-bold text-gray-900 mb-2">Upcoming Matches</h2>
-          <p class="text-gray-600">See what's coming up on the courts</p>
+          <p class="text-gray-600">See who's playing next</p>
+        </div>
+      </div>
+
+      <!-- Next Match Highlight -->
+      <div id="next-match-highlight" class="mb-8 hidden">
+        <div class="bg-green-600 rounded-2xl p-6 sm:p-8 shadow-xl text-white relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-full bg-green-600/20 -z-0"></div>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10">
+            <div>
+              <h3 class="text-sm font-semibold text-green-200 uppercase tracking-wider mb-2">Next Match</h3>
+              <h2 id="next-match-title" class="text-3xl font-bold mb-2">No matches scheduled</h2>
+              <p id="next-match-details" class="text-green-100 text-sm">Create a match from the queue to see who's playing next.</p>
+            </div>
+            <div class="text-right">
+              <div class="text-xs text-green-300 mb-1">Court</div>
+              <div id="next-match-court" class="text-2xl font-bold">—</div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="matches-grid">
         <!-- Matches injected by JS -->
+        <div class="col-span-full text-center py-16 text-gray-400">
+          No matches yet. Create one from the matchmaking queue!
+        </div>
       </div>
     </div>
   </section>
@@ -295,6 +300,12 @@
     // Player queue state
     let queue = [];
 
+    // Leaderboard data (starts empty)
+    let players = [];
+
+    // Matches data (starts empty, populated by matchmaking)
+    let matches = [];
+
     // Join form
     document.getElementById('join-form').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -306,6 +317,7 @@
       const player = { id: Date.now(), name, level, joinedAt: new Date() };
       queue.push(player);
       renderQueue();
+      renderLeaderboard();
       document.getElementById('join-form').reset();
       showToast(`${name} joined the queue!`);
     });
@@ -332,6 +344,7 @@
       matches.unshift(match);
       renderQueue();
       renderMatches();
+      renderLeaderboard();
       showToast(`Match created! ${matchPlayers.map(p => p.name).join(', ')} on ${match.court}`);
     });
 
@@ -346,11 +359,11 @@
         return;
       }
 
-      list.innerHTML = queue.map(p => `
+      list.innerHTML = queue.map((p, i) => `
         <div class="queue-card bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-semibold">
-              ${p.name.charAt(0).toUpperCase()}
+            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-semibold text-sm">
+              #${i + 1}
             </div>
             <div>
               <div class="font-semibold text-gray-900">${p.name}</div>
@@ -366,37 +379,9 @@
       return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
-    // Open play schedule data
-    const schedule = [
-      { day: 'Monday', time: '6:00 PM – 9:00 PM', court: 'North Courts', level: 'All levels' },
-      { day: 'Tuesday', time: '9:00 AM – 12:00 PM', court: 'South Courts', level: 'Beginner' },
-      { day: 'Wednesday', time: '6:00 PM – 9:00 PM', court: 'Community Center', level: 'Intermediate' },
-      { day: 'Thursday', time: '9:00 AM – 12:00 PM', court: 'East Side', level: 'All levels' },
-      { day: 'Friday', time: '6:00 PM – 9:00 PM', court: 'West Courts', level: 'Advanced' },
-      { day: 'Saturday', time: '8:00 AM – 11:00 AM', court: 'Downtown', level: 'All levels' },
-      { day: 'Sunday', time: '4:00 PM – 7:00 PM', court: 'North Courts', level: 'All levels' },
-    ];
-
-    function renderSchedule() {
-      const grid = document.getElementById('schedule-grid');
-      grid.innerHTML = schedule.map(s => `
-        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div class="flex justify-between items-start mb-2">
-            <span class="font-bold text-gray-900 text-lg">${s.day}</span>
-            <span class="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full border border-gray-200">${s.level}</span>
-          </div>
-          <p class="text-green-600 font-medium text-sm mb-1">${s.time}</p>
-          <p class="text-gray-600 text-sm">${s.court}</p>
-        </div>
-      `).join('');
-    }
-
-    // Leaderboard data (starts empty)
-    const players = [];
-
     function renderLeaderboard() {
       const body = document.getElementById('leaderboard-body');
-      if (players.length === 0) {
+      if (players.length === 0 && matches.length === 0) {
         body.innerHTML = `
           <tr>
             <td colspan="6" class="px-6 py-12 text-center text-gray-400">
@@ -406,8 +391,25 @@
         `;
         return;
       }
-      body.innerHTML = players.map((p, i) => {
-        const winPct = Math.round((p.wins / (p.wins + p.losses)) * 100);
+
+      // Build leaderboard from match history
+      const stats = {};
+      matches.forEach(m => {
+        m.players.forEach(p => {
+          if (!stats[p.name]) {
+            stats[p.name] = { name: p.name, level: p.level, wins: 0, losses: 0 };
+          }
+        });
+        // Simple: first 2 players win, last 2 lose (for demo tracking)
+        // In real use you'd record actual results
+        m.players.slice(0, 2).forEach(p => { stats[p.name].wins++; });
+        m.players.slice(2).forEach(p => { stats[p.name].losses++; });
+      });
+
+      const sorted = Object.values(stats).sort((a, b) => b.wins - a.wins);
+
+      body.innerHTML = sorted.map((p, i) => {
+        const winPct = p.wins + p.losses === 0 ? 0 : Math.round((p.wins / (p.wins + p.losses)) * 100);
         return `
           <tr class="player-row">
             <td class="px-6 py-4 font-bold text-gray-600">${i + 1}</td>
@@ -421,12 +423,15 @@
       }).join('');
     }
 
-    // Matches data (starts empty, populated by matchmaking)
-    let matches = [];
-
     function renderMatches() {
       const grid = document.getElementById('matches-grid');
+      const highlight = document.getElementById('next-match-highlight');
+      const nextTitle = document.getElementById('next-match-title');
+      const nextDetails = document.getElementById('next-match-details');
+      const nextCourt = document.getElementById('next-match-court');
+
       if (matches.length === 0) {
+        highlight.classList.add('hidden');
         grid.innerHTML = `
           <div class="col-span-full text-center py-16 text-gray-400">
             No matches yet. Create one from the matchmaking queue!
@@ -434,13 +439,21 @@
         `;
         return;
       }
+
+      // Show next match highlight
+      const next = matches[0];
+      highlight.classList.remove('hidden');
+      nextTitle.textContent = next.players.map(p => p.name).join(' vs ');
+      nextDetails.textContent = `${next.status} • ${formatTime(next.time)}`;
+      nextCourt.textContent = next.court;
+
       grid.innerHTML = matches.map(m => `
-        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div class="match-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div class="flex justify-between items-start mb-3">
-            <h3 class="text-lg font-bold text-gray-900">${m.opponent || m.players.map(p => p.name).join(' vs ')}</h3>
+            <h3 class="text-lg font-bold text-gray-900">${m.players.map(p => p.name).join(' vs ')}</h3>
             <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">${m.status}</span>
           </div>
-          <p class="text-gray-600 text-sm mb-1"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>${m.time || formatTime(m.time)}</p>
+          <p class="text-gray-600 text-sm mb-1"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>${formatTime(m.time)}</p>
           <p class="text-gray-600 text-sm mb-4"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${m.court}</p>
           <button class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">View Details</button>
         </div>
@@ -456,7 +469,6 @@
 
     // Initialize
     renderQueue();
-    renderSchedule();
     renderLeaderboard();
     renderMatches();
 
