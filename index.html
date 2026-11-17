@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pickleball Game | Courts, Matches & Players</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px); }
+    .nav-link { transition: color 0.2s; }
+    .nav-link:hover, .nav-link:focus { color: #2563eb; }
+    .court-card:hover { transform: translateY(-4px); transition: transform 0.2s; }
+    .player-row:nth-child(even) { background: #f9fafb; }
+    .modal { display: none; opacity: 0; transition: opacity 0.3s; }
+    .modal.open { display: block; opacity: 1; }
+    .checkbox:checked + .checkmark { background-color: #2563eb; }
+    .checkbox:checked + .checkmark:after { border-color: white; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+  <!-- Navigation -->
+  <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+            P
+          </div>
+          <span class="font-bold text-xl tracking-tight text-gray-900">Pickleball</span>
+        </div>
+        <div class="hidden md:flex space-x-8">
+          <a href="#home" class="nav-link text-gray-600 hover:text-green-600 font-medium">Home</a>
+          <a href="#courts" class="nav-link text-gray-600 hover:text-green-600 font-medium">Courts</a>
+          <a href="#leaderboard" class="nav-link text-gray-600 hover:text-green-600 font-medium">Leaderboard</a>
+          <a href="#matches" class="nav-link text-gray-600 hover:text-green-600 font-medium">Matches</a>
+          <a href="#contact" class="nav-link text-gray-600 hover:text-green-600 font-medium">Contact</a>
+        </div>
+        <div class="md:hidden flex items-center">
+          <button id="mobile-menu-btn" class="text-gray-600 focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
+      <div class="px-4 py-4 space-y-4">
+        <a href="#home" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Home</a>
+        <a href="#courts" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Courts</a>
+        <a href="#leaderboard" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Leaderboard</a>
+        <a href="#matches" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Matches</a>
+        <a href="#contact" class="block px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-md font-medium">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section id="home" class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-green-500/20 -z-10"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-32 text-center">
+      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight mb-6">
+        Welcome to <span class="text-green-600">Pickleball</span>
+      </h1>
+      <p class="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+        Join the game, book a court, track your matches, and climb the leaderboard.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="#courts" class="px-8 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+          Book a Court <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+        </a>
+        <a href="#leaderboard" class="px-8 py-4 bg-white border border-gray-300 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
+          View Leaderboard
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick stats -->
+  <section class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+        <div class="p-6 bg-gray-50 rounded-xl text-center">
+          <div class="text-3xl font-bold text-green-600">12</div>
+          <div class="text-sm text-gray-500 mt-1">Courts</div>
+        </div>
+        <div class="p-6 bg-gray-50 rounded-xl text-center">
+          <div class="text-3xl font-bold text-green-600">84</div>
+          <div class="text-sm text-gray-500 mt-1">Players</div>
+        </div>
+        <div class="p-6 bg-gray-50 rounded-xl text-center">
+          <div class="text-3xl font-bold text-green-600">24</div>
+          <div class="text-sm text-gray-500 mt-1">Matches</div>
+        </div>
+        <div class="p-6 bg-gray-50 rounded-xl text-center">
+          <div class="text-3xl font-bold text-green-600">7</div>
+          <div class="text-sm text-gray-500 mt-1">Days Open</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Courts -->
+  <section id="courts" class="py-12 sm:py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-end mb-10">
+        <div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Available Courts</h2>
+          <p class="text-gray-600">Book a court for your next game</p>
+        </div>
+        <div class="flex gap-2 mt-4 md:mt-0">
+          <button class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            Filter
+          </button>
+          <button onclick="openBookingModal()" class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition">
+            Book Court
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="courts-grid">
+        <!-- Courts injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Leaderboard -->
+  <section id="leaderboard" class="py-12 sm:py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Player Leaderboard</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm">Rank</th>
+              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm">Player</th>
+              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm">Level</th>
+              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm text-right">Wins</th>
+              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm text-right">Losses</th>
+              <th class="px-6 py-4 text-left font-semibold text-gray-600 text-sm text-right">Win %</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200" id="leaderboard-body">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Matches -->
+  <section id="matches" class="py-12 sm:py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-end mb-10">
+        <div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Upcoming Matches</h2>
+          <p class="text-gray-600">See what's coming up on the courts</p>
+        </div>
+        <button class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition flex items-center gap-2 mt-4 md:mt-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          Add Match
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="matches-grid">
+        <!-- Matches injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="py-12 sm:py-20 bg-green-600">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Get in Touch</h2>
+        <p class="text-green-100 text-lg">Questions? Want to join the game? Reach out below.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-8 sm:p-12 shadow-2xl">
+        <form id="contact-form" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+            <input type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input type="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+            <textarea required rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"></textarea>
+          </div>
+          <div class="sm:col-span-2 flex items-start gap-3">
+            <input type="checkbox" id="terms" class="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500" required />
+            <label for="terms" class="text-sm text-gray-600 leading-relaxed">I agree to the terms and conditions</label>
+          </div>
+          <div class="sm:col-span-2">
+            <button type="submit" class="px-8 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-center mb-10">
+        <div class="flex items-center gap-2 mb-4 md:mb-0">
+          <div class="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-white font-bold">
+            P
+          </div>
+          <span class="font-bold text-xl tracking-tight">Pickleball</span>
+        </div>
+        <p class="text-gray-400 text-sm">© 2026 Pickleball Game. All rights reserved.</p>
+      </div>
+      <div class="flex gap-6">
+        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Terms</a>
+        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Privacy</a>
+        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Booking Modal -->
+  <div id="booking-modal" class="fixed inset-0 z-50 modal">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onclick="closeBookingModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl transform scale-95 transition transform open:scale-100">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-xl font-bold text-gray-900">Book a Court</h3>
+          <p class="text-sm text-gray-500 mt-1">Select your court and time slot</p>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Court</label>
+            <select id="booking-court" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+              <option value="court-1">Court 1 - Outdoor</option>
+              <option value="court-2">Court 2 - Outdoor</option>
+              <option value="court-3">Court 3 - Indoor</option>
+              <option value="court-4">Court 4 - Indoor</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <input type="date" id="booking-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+            <select id="booking-time" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+              <option value="08:00">8:00 AM</option>
+              <option value="09:00">9:00 AM</option>
+              <option value="10:00">10:00 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="12:00">12:00 PM</option>
+              <option value="13:00">1:00 PM</option>
+              <option value="14:00">2:00 PM</option>
+              <option value="15:00">3:00 PM</option>
+              <option value="16:00">4:00 PM</option>
+              <option value="17:00">5:00 PM</option>
+            </select>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="closeBookingModal()" class="flex-1 py-4 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition">Cancel</button>
+            <button onclick="confirmBooking()" class="flex-1 py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg hover:shadow-xl">Confirm Booking</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg transform translate-y-20 transition-transform duration-300 z-50 flex items-center gap-3">
+    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <span id="toast-message">Action complete</span>
+  </div>
+
+  <script>
+    // Mobile menu toggle
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+
+    // Booking modal
+    function openBookingModal() {
+      document.getElementById('booking-modal').classList.add('open');
+      document.getElementById('booking-date').valueAsDate = new Date();
+    }
+    function closeBookingModal() {
+      document.getElementById('booking-modal').classList.remove('open');
+    }
+    function confirmBooking() {
+      const court = document.getElementById('booking-court').value;
+      const date = document.getElementById('booking-date').value;
+      const time = document.getElementById('booking-time').value;
+      closeBookingModal();
+      showToast(`Booked ${court} on ${date} at ${time}`);
+    }
+
+    // Toast
+    function showToast(msg) {
+      document.getElementById('toast-message').textContent = msg;
+      const toast = document.getElementById('toast');
+      toast.classList.remove('translate-y-20');
+      setTimeout(() => toast.classList.add('translate-y-20'), 3000);
+    }
+
+    // Courts data
+    const courts = [
+      { id: 'court-1', name: 'Court 1', type: 'Outdoor', status: 'Available', price: '$10/hr', image: 'https://images.unsplash.com/photo-1615718454837-0a8efc0e7a5d?w=400&h=300&fit=crop' },
+      { id: 'court-2', name: 'Court 2', type: 'Outdoor', status: 'Available', price: '$10/hr', image: 'https://images.unsplash.com/photo-1597758370891-0977794b63a8?w=400&h=300&fit=crop' },
+      { id: 'court-3', name: 'Court 3', type: 'Indoor', status: 'Available', price: '$15/hr', image: 'https://images.unsplash.com/photo-1610651960642-0b9e8c8e8f3b?w=400&h=300&fit=crop' },
+      { id: 'court-4', name: 'Court 4', type: 'Indoor', status: 'Booked', price: '$15/hr', image: 'https://images.unsplash.com/photo-1574628021263-ebf5b9e0e0b2?w=400&h=300&fit=crop' },
+      { id: 'court-5', name: 'Court 5', type: 'Outdoor', status: 'Available', price: '$10/hr', image: 'https://images.unsplash.com/photo-1615718454837-0a8efc0e7a5d?w=400&h=300&fit=crop' },
+      { id: 'court-6', name: 'Court 6', type: 'Outdoor', status: 'Available', price: '$10/hr', image: 'https://images.unsplash.com/photo-1597758370891-0977794b63a8?w=400&h=300&fit=crop' },
+    ];
+
+    function renderCourts() {
+      const grid = document.getElementById('courts-grid');
+      grid.innerHTML = courts.map(c => `
+        <div class="court-card bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition">
+          <img src="${c.image}" alt="${c.name}" class="w-full h-48 object-cover" />
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-lg font-bold text-gray-900">${c.name}</h3>
+              <span class="px-2 py-1 ${c.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} text-xs font-medium rounded-full">${c.status}</span>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">${c.type} court</p>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-gray-900">${c.price}</span>
+              <button onclick="openBookingModal()" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition flex items-center gap-1">
+                Book <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Leaderboard data
+    const players = [
+      { rank: 1, name: 'Sarah Chen', level: 'Advanced', wins: 24, losses: 4 },
+      { rank: 2, name: 'Mike Rodriguez', level: 'Advanced', wins: 22, losses: 6 },
+      { rank: 3, name: 'Jessica Lee', level: 'Intermediate', wins: 20, losses: 8 },
+      { rank: 4, name: 'David Kim', level: 'Intermediate', wins: 18, losses: 10 },
+      { rank: 5, name: 'Amanda Foster', level: 'Beginner', wins: 15, losses: 13 },
+      { rank: 6, name: 'Chris Patel', level: 'Beginner', wins: 12, losses: 16 },
+      { rank: 7, name: 'Rachel Green', level: 'Intermediate', wins: 10, losses: 18 },
+      { rank: 8, name: 'Tom Wright', level: 'Beginner', wins: 8, losses: 20 },
+    ];
+
+    function renderLeaderboard() {
+      const body = document.getElementById('leaderboard-body');
+      body.innerHTML = players.map(p => {
+        const winPct = Math.round((p.wins / (p.wins + p.losses)) * 100);
+        const rankBadge = p.rank === 1 ? 'text-yellow-600' : p.rank === 2 ? 'text-gray-600' : p.rank === 3 ? 'text-orange-600' : 'text-gray-400';
+        return `
+          <tr class="player-row">
+            <td class="px-6 py-4 font-bold ${rankBadge}">${p.rank}</td>
+            <td class="px-6 py-4 font-medium text-gray-900">${p.name}</td>
+            <td class="px-6 py-4 text-gray-600"><span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border border-gray-200">${p.level}</span></td>
+            <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.wins}</td>
+            <td class="px-6 py-4 text-gray-900 font-medium text-right">${p.losses}</td>
+            <td class="px-6 py-4 text-gray-600 text-right">${winPct}%</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Matches data
+    const matches = [
+      { opponent: 'Sarah Chen vs Mike Rodriguez', time: 'Today 6:00 PM', court: 'Court 3', status: 'Scheduled' },
+      { opponent: 'Jessica Lee vs David Kim', time: 'Tomorrow 9:00 AM', court: 'Court 1', status: 'Scheduled' },
+      { opponent: 'Amanda Foster vs Chris Patel', time: 'Tomorrow 11:00 AM', court: 'Court 2', status: 'Scheduled' },
+      { opponent: 'Rachel Green vs Tom Wright', time: 'Tomorrow 2:00 PM', court: 'Court 4', status: 'Scheduled' },
+      { opponent: 'Sarah Chen vs Jessica Lee', time: 'Friday 6:00 PM', court: 'Court 3', status: 'Upcoming' },
+      { opponent: 'Mike Rodriguez vs David Kim', time: 'Saturday 10:00 AM', court: 'Court 1', status: 'Upcoming' },
+    ];
+
+    function renderMatches() {
+      const grid = document.getElementById('matches-grid');
+      grid.innerHTML = matches.map(m => `
+        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div class="flex justify-between items-start mb-3">
+            <h3 class="text-lg font-bold text-gray-900">${m.opponent}</h3>
+            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">${m.status}</span>
+          </div>
+          <p class="text-gray-600 text-sm mb-1"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>${m.time}</p>
+          <p class="text-gray-600 text-sm mb-4"><svg class="w-4 h-4 inline mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${m.court}</p>
+          <button class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">View Details</button>
+        </div>
+      `).join('');
+    }
+
+    // Contact form
+    document.getElementById('contact-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      showToast('Message sent! We\'ll get back to you soon.');
+      e.target.reset();
+    });
+
+    // Initialize
+    renderCourts();
+    renderLeaderboard();
+    renderMatches();
+
+    // Smooth scroll for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelector(anchor.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('mobile-menu').classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+</html>
